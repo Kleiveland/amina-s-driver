@@ -9,36 +9,36 @@
 
 ---
 
-## 1. Functional Specification
+## 1. Functional Specification and Capabilities
 
-This document details the SmartThings Edge Driver developed for the Amina S Electric Vehicle (EV) Charger. The driver facilitates local operation and state synchronization via the Zigbee protocol, replacing the generic switch profile assigned by the SmartThings platform.
+This Edge Driver provides full local control and enhanced data monitoring for the Amina S EV Charger, replacing the default, limited SmartThings 'switch' profile. The driver runs locally on the SmartThings Hub for maximum speed and reliability.
 
-### 1.1 Implemented Capabilities
+### 1.1 Key Features and Control
 
-| Capability | Function | Protocol Implementation |
+| Capability | User Action / Practical Function | Technical Implementation |
 | :--- | :--- | :--- |
-| **Switch** | Arming and disarming of charging functionality. | Zigbee Cluster 0x0006 (On/Off) |
+| **Switch** | **Enables and disables the charger's readiness state (Controls power relay).** | Zigbee Cluster 0x0006 (On/Off) |
 | **Charge Limit Control** | Configuration of the maximum charging current (6A–32A). | Zigbee Cluster 0x0008 (Level Control) mapped to Ampere calculation. |
 | **Power Measurement** | Real-time reporting of active power, voltage, and current. | Zigbee Cluster 0x0B04 (Electrical Measurement) |
 | **Energy Consumption** | Retrieval of total lifetime energy usage (kWh). | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0010). |
 | **Alarm / Notification** | Reports critical hardware errors, safety warnings (e.g., leakage, overvoltage), and processing issues via SmartThings Notifications. | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0002). |
 | **Status Tracking** | Detailed tracking of charger state (EV Connected, Power Delivered, Derating, Paused). | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0003). |
 
-### 1.2 Accuracy Note
+### 1.2 Accuracy and Robustness
 
-Measurement attributes received via Cluster 0x0B04 are scaled utilizing the Multiplier/Divisor parameters transmitted by the device, ensuring the reported values (V, A, W) adhere to standard SI units.
+Measurement attributes are scaled using device-specific factors, ensuring the reported Volt, Ampere, and Watt values are precise. The driver is configured to request automatic data reporting from the charger, guaranteeing instant status updates without constant polling.
 
 ---
 
 ## 2. Deployment Procedure
 
-Deployment of this driver requires the use of the **SmartThings Command Line Interface (CLI)** for packaging, validation, and installation onto the local Hub environment.
+Deployment requires the **SmartThings Command Line Interface (CLI)** to validate, package, and install the driver onto your local Hub.
 
 ### 2.1 Environment Setup (Cross-Platform)
 
 The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
 
-1.  **Node.js Installation:** Install the Node.js LTS distribution. Utilize platform-specific package managers (e.g., Homebrew on macOS, `apt` on Linux) or download directly from [nodejs.org].
+1.  **Node.js Installation:** Install the Node.js LTS distribution. Utilise platform-specific package managers (e.g., Homebrew on macOS, `apt` on Linux) or download directly from [nodejs.org].
 
     *Example (Linux/Debian-based):*
     ```bash
@@ -66,7 +66,7 @@ The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
     ```bash
     cd amina-s-driver
     ```
-3.  **Driver Validation and Package Creation:** Execute the packaging command. This verifies syntax correctness and bundles the driver.
+3.  **Driver Validation and Package Creation:** Execute the packaging command to verify syntax and bundle the driver.
     ```bash
     smartthings edge:drivers:package .
     ```
@@ -78,5 +78,15 @@ The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
     ```bash
     smartthings edge:drivers:install
     ```
-3.  **Device Disenrollment:** If the Amina S unit is currently paired, it must be disassociated from the platform to ensure the new driver is selected.
-4.  **Re-enrollment (Pairing):** Initiate the device discovery process (e.g., power cycle the charger to enter pairing mode). The Hub will match the device fingerprint to this custom driver.
+3.  **Device Disenrollment:** If the Amina S unit is currently paired, remove it from the SmartThings app to ensure the new driver is selected.
+4.  **Re-enrollment (Pairing):** Initiate the device discovery process (e.g., power cycle the charger to enter pairing mode). The Hub will match the device fingerprint and apply this custom driver.
+
+---
+
+## 3. Repository Management and Distribution
+
+### 3.1 Distribution
+
+The driver is distributed via a SmartThings Channel. To generate an invitation link for community sharing, execute:
+```bash
+smartthings edge:channels:invite
