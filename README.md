@@ -15,14 +15,14 @@ This Edge Driver provides full local control and enhanced data monitoring for th
 
 ### 1.1 Key Features and Control
 
-| Capability | User Action / Practical Function | Technical Implementation |
-| :--- | :--- | :--- |
-| **Switch** | Enables and disables the charger's readiness state (Controls power relay). | Zigbee Cluster 0x0006 (On/Off) |
-| **Charge Limit Control** | Configuration of the maximum charging current (6A–32A). | Zigbee Cluster 0x0008 (Level Control) mapped to Ampere calculation. |
-| **Power Measurement** | Real-time reporting of active power, voltage, and current. | Zigbee Cluster 0x0B04 (Electrical Measurement) |
-| **Energy Consumption** | Retrieval of total lifetime energy usage (kWh). | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0010). |
-| **Alarm / Notification** | Reports critical hardware errors, safety warnings (e.g., leakage, overvoltage), and processing issues via SmartThings Notifications. | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0002). |
-| **Status Tracking** | Detailed tracking of charger state (EV Connected, Power Delivered, Derating, Paused). | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0003). |
+| Capability | User Action / Practical Function |
+| :--- | :--- |
+| **Switch** | Enables and disables the charger's readiness state (Controls power relay). |
+| **Charge Limit Control** | Configuration of the maximum charging current (6A–32A). |
+| **Power Measurement** | Real-time reporting of active power, voltage, and current. |
+| **Energy Consumption** | Retrieval of total lifetime energy usage (kWh). |
+| **Alarm / Notification** | Reports critical hardware errors, safety warnings (e.g., leakage, overvoltage), and processing issues via SmartThings Notifications. |
+| **Status Tracking** | Detailed tracking of charger state (EV Connected, Power Delivered, Derating, Paused). |
 
 ### 1.2 Accuracy and Robustness
 
@@ -38,7 +38,7 @@ Deployment requires the **SmartThings Command Line Interface (CLI)** to validate
 
 The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
 
-1.  **Node.js Installation:** Install the Node.js LTS distribution. Utilise platform-specific package managers (e.g., Homebrew on macOS, `apt` on Linux) or download directly from [nodejs.org].
+1.  **Node.js Installation:** Install the Node.js LTS distribution. Utiliser plattform-spesifikke pakkeadministratorer (f.eks. Homebrew på macOS, `apt` på Linux) eller last ned direkte fra [nodejs.org](https://nodejs.org/).
 
     *Example (Linux/Debian-based):*
     ```bash
@@ -46,48 +46,41 @@ The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
     sudo apt install nodejs npm
     ```
 
-2.  **Install SmartThings CLI:** Install the CLI globally using npm:
+2.  **Install SmartThings CLI:** Installer CLI globalt ved å bruke npm:
     ```bash
     npm install -g @smartthings/cli
     ```
 
-3.  **Authentication:** Authenticate the CLI session with your SmartThings Developer Account:
+3.  **Authentication:** Autentiser CLI-sesjonen med din SmartThings utviklerkonto:
     ```bash
     smartthings login
     ```
 
 ### 2.2 Code Acquisition and Packaging
 
-1.  **Clone Repository:** Execute the following command in the terminal to retrieve the source code:
+1.  **Clone Repository:** Utfør følgende kommando i terminalen for å hente kildekoden:
     ```bash
     git clone [https://github.com/Kleiveland/amina-s-driver.git](https://github.com/Kleiveland/amina-s-driver.git)
     ```
-2.  **Directory Navigation:** Navigate into the newly created project directory:
+2.  **Directory Navigation:** Naviger inn i den nyopprettede prosjektmappen:
     ```bash
     cd amina-s-driver
     ```
-3.  **Driver Validation and Package Creation:** Execute the packaging command to verify syntax and bundle the driver.
+3.  **Driver Validation and Package Creation:** Utfør pakkekommandoen for å verifisere syntaks og samle driveren.
     ```bash
     smartthings edge:drivers:package .
     ```
 
 ### 2.3 Installation and Device Enrollment
 
-1.  **Channel Establishment:** If a distribution channel is not established, execute `smartthings edge:channels:create`.
-2.  **Driver Installation:** Install the package to the designated channel and push it to the target Hub:
+1.  **Channel Establishment:** Hvis en distribusjonskanal ikke er etablert, utfør `smartthings edge:channels:create`.
+2.  **Driver Installation:** Installer pakken til den utpekte kanalen og push den til mål-Huben:
     ```bash
     smartthings edge:drivers:install
     ```
-3.  **Device Disenrollment:** If the Amina S unit is currently paired, remove it from the SmartThings app to ensure the new driver is selected.
-4.  **Re-enrollment (Pairing):** Initiate the device discovery process (e.g., power cycle the charger to enter pairing mode). The Hub will match the device fingerprint and apply this custom driver.
+3.  **Device Disenrollment:** Hvis Amina S-enheten er paret, fjern den fra SmartThings-appen for å sikre at den nye driveren velges.
+4.  **Re-enrollment (Pairing):** Start enhetens oppdagelsesprosess (f.eks. slå av og på laderen for å gå inn i paringsmodus). Huben vil matche enhetens fingeravtrykk og bruke denne tilpassede driveren.
 
----
-
-## 3. Repository Management and Distribution
-
-### 3.1 Distribution
-
-The driver is distributed via a SmartThings Channel. To generate an invitation link for community sharing, execute:
+Driveren distribueres via en SmartThings Channel. For å generere en invitasjonslenke for deling i fellesskapet, utfør:
 ```bash
 smartthings edge:channels:invite
-
