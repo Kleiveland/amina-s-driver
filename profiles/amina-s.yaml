@@ -25,9 +25,13 @@ components:
       - id: refresh
         version: 1
 
-    # CUSTOM CONTROL FOR CHARGE LIMIT (Amps) - using Level Control as an interface
+      # CUSTOM CONTROL FOR CHARGE LIMIT (Amps) - using Level Control as an interface
       - id: switchLevel
         version: 1 
+      
+      # Required for Alarm messages (0x0002)
+      - id: notification
+        version: 1
         
     # CATEGORY: Ensures the driver uses the correct EV_CHARGER icon in the app.
     categories:
