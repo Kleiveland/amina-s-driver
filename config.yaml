@@ -1,0 +1,17 @@
+# Amina S driver
+# Copyright (c) 2025 Kristian Kleiveland
+# Licensed under the MIT License.
+name: "Amina S driver"
+package: "amina-s-driver"
+version: "1.0.0"
+
+# Fingerprint to match the device (crucial for automatic pairing)
+zigbee:
+  fingerprints:
+    - manufacturer: "Amina Distribution AS"
+      model: "amina S"
+      deviceProfile: "amina-s" 
+  
+# Defines the location of the capability profile
+profiles:
+  - amina-s
