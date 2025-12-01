@@ -46,10 +46,13 @@ Deployment of this driver requires the use of the **SmartThings Command Line Int
 
 ### 2.2 Code Acquisition and Packaging
 
-1.  **Repository Structure:** Clone or download the source code, ensuring the directory structure (`profiles/` and `src/` subdirectories) is maintained.
-2.  **Terminal Navigation:** Navigate the terminal to the project root directory:
+1.  **Clone Repository:** Execute the following command in the terminal to retrieve the source code:
     ```bash
-    cd [PROJECT_ROOT_PATH]
+    git clone [https://github.com/Kleiveland/amina-s-driver.git](https://github.com/Kleiveland/amina-s-driver.git)
+    ```
+2.  **Directory Navigation:** Navigate into the newly created project directory:
+    ```bash
+    cd amina-s-driver
     ```
 3.  **Driver Validation and Package Creation:** Execute the packaging command. This verifies syntax correctness and bundles the driver.
     ```bash
