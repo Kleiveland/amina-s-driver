@@ -20,13 +20,6 @@ local AMINA_ENERGY_ATTRIBUTE = 0x0010  -- Total Active Energy (Wh) in 0xFEE7
 local CHARGER_ENDPOINT = 10 
 local scaling_factors = {}
 
--- Define the attributes for which we need scaling factors
-local MEASUREMENT_ATTRIBUTES = {
-  voltage = clusters.ElectricalMeasurement.attributes.RMSVoltage.ID,
-  current = clusters.ElectricalMeasurement.attributes.RMSCurrent.ID,
-  power = clusters.ElectricalMeasurement.attributes.ActivePower.ID
-}
-
 -- --- UTILITY FUNCTIONS FOR ZIGBEE SCALING ---
 
 local function calculate_value(raw_value, attribute_id)
@@ -41,24 +34,21 @@ local function calculate_value(raw_value, attribute_id)
 end
 
 local function store_scaling_factor(device, attr_id, raw_value)
-  -- Determine which measurement attribute this factor applies to
   local measurement_attr_id
   if attr_id == clusters.ElectricalMeasurement.attributes.ACVoltageMultiplier.ID or attr_id == clusters.ElectricalMeasurement.attributes.ACVoltageDivisor.ID then
-    measurement_attr_id = MEASUREMENT_ATTRIBUTES.voltage
+    measurement_attr_id = clusters.ElectricalMeasurement.attributes.RMSVoltage.ID
   elseif attr_id == clusters.ElectricalMeasurement.attributes.ACCurrentMultiplier.ID or attr_id == clusters.ElectricalMeasurement.attributes.ACCurrentDivisor.ID then
-    measurement_attr_id = MEASUREMENT_ATTRIBUTES.current
+    measurement_attr_id = clusters.ElectricalMeasurement.attributes.RMSCurrent.ID
   elseif attr_id == clusters.ElectricalMeasurement.attributes.ACPowerMultiplier.ID or attr_id == clusters.ElectricalMeasurement.attributes.ACPowerDivisor.ID then
-    measurement_attr_id = MEASUREMENT_ATTRIBUTES.power
+    measurement_attr_id = clusters.ElectricalMeasurement.attributes.ActivePower.ID
   end
   
-  if not measurement_attr_id then return end -- Ignore if not a scaling attribute
+  if not measurement_attr_id then return end
 
-  -- Initialize storage for this measurement attribute
   if not scaling_factors[measurement_attr_id] then
     scaling_factors[measurement_attr_id] = { multiplier = 1, divisor = 1 }
   end
 
-  -- Update multiplier or divisor based on the scaling attribute ID received
   if attr_id == clusters.ElectricalMeasurement.attributes.ACVoltageMultiplier.ID or 
      attr_id == clusters.ElectricalMeasurement.attributes.ACCurrentMultiplier.ID or
      attr_id == clusters.ElectricalMeasurement.attributes.ACPowerMultiplier.ID then
@@ -69,15 +59,15 @@ local function store_scaling_factor(device, attr_id, raw_value)
       scaling_factors[measurement_attr_id].divisor = raw_value
   end
   
-  -- Store persistently (optional but recommended for stability)
   device:set_field(string.format("scaling_0x%04X", measurement_attr_id), scaling_factors[measurement_attr_id])
   
   log.info(string.format("Updated scaling factor for 0x%04X: M=%d, D=%d", measurement_attr_id, scaling_factors[measurement_attr_id].multiplier, scaling_factors[measurement_attr_id].divisor))
 end
 
 
--- --- HANDLERS FOR CAPABILITIES (CONTROL) ---
-
+-- --- HANDLERS FOR CAPABILITIES (CONTROL & EVENTS) ---
+-- (Ingen endringer i handle_switch_cmd, handle_level_cmd, electrical_measurement_handler, amina_control_handler)
+-- [Kode for handle_switch_cmd, handle_level_cmd, electrical_measurement_handler, amina_control_handler]
 local function handle_switch_cmd(driver, device, command)
   local cmd_id = command.command
   
@@ -104,8 +94,6 @@ local function handle_level_cmd(driver, device, command)
       transition_time = 0
     }):to_endpoint(CHARGER_ENDPOINT))
 end
-
--- --- HANDLERS FOR EVENTS (MESSAGING) ---
 
 local function electrical_measurement_handler(driver, device, event, raw_data)
   local attr_id = event.attr_id
@@ -152,9 +140,52 @@ local function amina_control_handler(driver, device, event, raw_data)
   -- converting the bitmask to readable status messages based on Amina documentation.
   return defaults.basic_response_handler(driver, device, event, raw_data)
 end
+-- [Slutt på funksjonskroppene]
 
--- Function to read all attributes and scaling factors
+-- Function to configure attribute reporting
+local function configure_reporting(device)
+  log.info("Configuring automatic attribute reporting for Amina S...")
+  
+  -- 0x0006 On/Off: Report immediately on change
+  device:send(clusters.OnOff.client.configure_reporting(
+    clusters.OnOff.attributes.OnOff, 
+    0, 
+    0, 
+    600 -- Max interval 10 minutes
+  ):to_endpoint(CHARGER_ENDPOINT))
+
+  -- 0x0B04 Electrical Measurement: Report ActivePower (W)
+  -- Report min once every 30s, max once every 300s (5 min), and on a change threshold (e.g., 5 Watts)
+  device:send(clusters.ElectricalMeasurement.client.configure_reporting(
+    clusters.ElectricalMeasurement.attributes.ActivePower, 
+    30, 
+    300, 
+    5 -- Report on 5 Watt change threshold
+  ):to_endpoint(CHARGER_ENDPOINT))
+  
+  -- 0x0B04 Electrical Measurement: Report RMSCurrent (A)
+  -- Report min once every 30s, max once every 300s (5 min), and on a change threshold (e.g., 5 Amps)
+  device:send(clusters.ElectricalMeasurement.client.configure_reporting(
+    clusters.ElectricalMeasurement.attributes.RMSCurrent, 
+    30, 
+    300, 
+    500 -- Note: Assuming current is reported in milliAmps (0.5A threshold) based on common practice.
+  ):to_endpoint(CHARGER_ENDPOINT))
+
+  -- 0xFEE7 Amina S Control: Report Total Active Energy (Wh)
+  device:send(clusters.Cluster.client.configure_reporting(
+    AMINA_S_CONTROL_CLUSTER, 
+    AMINA_ENERGY_ATTRIBUTE, 
+    clusters.DataType.UINT32, 
+    300, -- Min interval 5 minutes
+    3600, -- Max interval 1 hour
+    1000 -- Report on 1000 Wh (1 kWh) change
+  ):to_endpoint(CHARGER_ENDPOINT))
+end
+
+-- Function to read all attributes and scaling factors (used for manual refresh)
 local function refresh_all_measurements(device)
+  -- [Koden fra den forrige refresh_all_measurements funksjonen er her]
   -- Read all Scaling Multipliers/Divisors first
   device:send(clusters.ElectricalMeasurement.client.read_attributes({
       clusters.ElectricalMeasurement.attributes.ACVoltageMultiplier,
@@ -178,6 +209,14 @@ local function refresh_all_measurements(device)
       -- 0x0002 Alarms
       -- 0x0003 EV Statuses
     }):to_endpoint(CHARGER_ENDPOINT))
+end
+
+local function do_configure(device)
+  -- 1. Configure Reporting (Critical for automatic updates)
+  configure_reporting(device)
+  
+  -- 2. Read initial values and scaling factors
+  refresh_all_measurements(device)
 end
 
 -- --- DRIVER DEFINITION ---
@@ -205,7 +244,7 @@ local amina_driver = zigbee_driver.Driver("amina-s-driver", {
     }
   },
   lifecycle_handlers = {
-    doConfigure = refresh_all_measurements -- Read scaling factors and measurements on install
+    doConfigure = do_configure -- Run configuration and initial refresh on install
   },
   zigbee_handlers = {
     cluster = {
