@@ -20,7 +20,9 @@ This document details the SmartThings Edge Driver developed for the Amina S Elec
 | **Switch** | Arming and disarming of charging functionality. | Zigbee Cluster 0x0006 (On/Off) |
 | **Charge Limit Control** | Configuration of the maximum charging current (6A–32A). | Zigbee Cluster 0x0008 (Level Control) mapped to Ampere calculation. |
 | **Power Measurement** | Real-time reporting of active power, voltage, and current. | Zigbee Cluster 0x0B04 (Electrical Measurement) |
-| **Energy Consumption** | Retrieval of total lifetime energy usage (kWh). | Custom Zigbee Cluster 0xFEE7. |
+| **Energy Consumption** | Retrieval of total lifetime energy usage (kWh). | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0010). |
+| **Alarm / Notification** | Reports critical hardware errors, safety warnings (e.g., leakage, overvoltage), and processing issues via SmartThings Notifications. | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0002). |
+| **Status Tracking** | Detailed tracking of charger state (EV Connected, Power Delivered, Derating, Paused). | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0003). |
 
 ### 1.2 Accuracy Note
 
@@ -32,13 +34,23 @@ Measurement attributes received via Cluster 0x0B04 are scaled utilizing the Mult
 
 Deployment of this driver requires the use of the **SmartThings Command Line Interface (CLI)** for packaging, validation, and installation onto the local Hub environment.
 
-### 2.1 Environment Setup (Windows)
+### 2.1 Environment Setup (Cross-Platform)
 
-1.  **Node.js Installation:** Install the current Node.js LTS distribution.
-2.  **CLI Installation:** Install the SmartThings CLI globally using npm:
+The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
+
+1.  **Node.js Installation:** Install the Node.js LTS distribution. Utilize platform-specific package managers (e.g., Homebrew on macOS, `apt` on Linux) or download directly from [nodejs.org].
+
+    *Example (Linux/Debian-based):*
+    ```bash
+    sudo apt update
+    sudo apt install nodejs npm
+    ```
+
+2.  **Install SmartThings CLI:** Install the CLI globally using npm:
     ```bash
     npm install -g @smartthings/cli
     ```
+
 3.  **Authentication:** Authenticate the CLI session with your SmartThings Developer Account:
     ```bash
     smartthings login
