@@ -68,13 +68,3 @@ Deployment of this driver requires the use of the **SmartThings Command Line Int
     ```
 3.  **Device Disenrollment:** If the Amina S unit is currently paired, it must be disassociated from the platform to ensure the new driver is selected.
 4.  **Re-enrollment (Pairing):** Initiate the device discovery process (e.g., power cycle the charger to enter pairing mode). The Hub will match the device fingerprint to this custom driver.
-
----
-
-## 3. Repository Management and Distribution
-
-### 3.1 Distribution
-
-The driver is distributed via a SmartThings Channel. To generate an invitation link for community sharing, execute:
-```bash
-smartthings edge:channels:invite
