@@ -1,0 +1,30 @@
+# Amina S driver
+# Copyright (c) 2025 Kristian Kleiveland
+# Licensed under the MIT License.
+name: amina-s
+components:
+  main:
+    capabilities:
+      # 0x0006 On/Off - Arm/Disarm charging
+      - id: switch
+        version: 1
+
+      # 0x0B04 Electrical Measurement - Power Readings
+      - id: powerMeter             # Total Active Power (W)
+        version: 1
+      - id: voltageMeasurement     # RMS Voltage (V)
+        version: 1
+      - id: currentMeasurement     # RMS Current (A)
+        version: 1
+
+      # 0xFEE7 Amina S Control - Total Energy Consumption (Wh)
+      - id: energyMeasurement      # Total Active Energy (kWh)
+        version: 1
+      
+      # Refresh forces the device to report new values
+      - id: refresh
+        version: 1
+
+    # CUSTOM CONTROL FOR CHARGE LIMIT (Amps) - using Level Control as an interface
+      - id: switchLevel
+        version: 1
