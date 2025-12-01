@@ -17,7 +17,7 @@ This Edge Driver provides full local control and enhanced data monitoring for th
 
 | Capability | User Action / Practical Function | Technical Implementation |
 | :--- | :--- | :--- |
-| **Switch** | **Enables and disables the charger's readiness state (Controls power relay).** | Zigbee Cluster 0x0006 (On/Off) |
+| **Switch** | Enables and disables the charger's readiness state (Controls power relay). | Zigbee Cluster 0x0006 (On/Off) |
 | **Charge Limit Control** | Configuration of the maximum charging current (6A–32A). | Zigbee Cluster 0x0008 (Level Control) mapped to Ampere calculation. |
 | **Power Measurement** | Real-time reporting of active power, voltage, and current. | Zigbee Cluster 0x0B04 (Electrical Measurement) |
 | **Energy Consumption** | Retrieval of total lifetime energy usage (kWh). | Custom Zigbee Cluster 0xFEE7 (Attribute 0x0010). |
@@ -90,3 +90,4 @@ The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
 The driver is distributed via a SmartThings Channel. To generate an invitation link for community sharing, execute:
 ```bash
 smartthings edge:channels:invite
+
