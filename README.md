@@ -38,7 +38,7 @@ Deployment requires the **SmartThings Command Line Interface (CLI)** to validate
 
 The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
 
-1.  **Node.js Installation:** Install the Node.js LTS distribution. Utiliser plattform-spesifikke pakkeadministratorer (f.eks. Homebrew på macOS, `apt` på Linux) eller last ned direkte fra [nodejs.org](https://nodejs.org/).
+1.  **Node.js Installation:** Install the Node.js LTS distribution. Utiliser platform-specific package managers (e.g., Homebrew on macOS, `apt` on Linux) or download directly from [nodejs.org](https://nodejs.org/).
 
     *Example (Linux/Debian-based):*
     ```bash
@@ -46,41 +46,38 @@ The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
     sudo apt install nodejs npm
     ```
 
-2.  **Install SmartThings CLI:** Installer CLI globalt ved å bruke npm:
+2.  **Install SmartThings CLI:** Install the CLI globally using npm:
     ```bash
     npm install -g @smartthings/cli
     ```
 
-3.  **Authentication:** Autentiser CLI-sesjonen med din SmartThings utviklerkonto:
+3.  **Authentication:** Authenticate the CLI session with your SmartThings Developer Account:
     ```bash
     smartthings login
     ```
 
 ### 2.2 Code Acquisition and Packaging
 
-1.  **Clone Repository:** Utfør følgende kommando i terminalen for å hente kildekoden:
+1.  **Clone Repository:** Execute the following command in the terminal to retrieve the source code:
     ```bash
     git clone [https://github.com/Kleiveland/amina-s-driver.git](https://github.com/Kleiveland/amina-s-driver.git)
     ```
-2.  **Directory Navigation:** Naviger inn i den nyopprettede prosjektmappen:
+2.  **Directory Navigation:** Navigate into the newly created project directory:
     ```bash
     cd amina-s-driver
     ```
-3.  **Driver Validation and Package Creation:** Utfør pakkekommandoen for å verifisere syntaks og samle driveren.
+3.  **Driver Validation and Package Creation:** Execute the packaging command. This verifies syntax correctness and bundles the driver.
     ```bash
     smartthings edge:drivers:package .
     ```
 
 ### 2.3 Installation and Device Enrollment
 
-1.  **Channel Establishment:** Hvis en distribusjonskanal ikke er etablert, utfør `smartthings edge:channels:create`.
-2.  **Driver Installation:** Installer pakken til den utpekte kanalen og push den til mål-Huben:
+1.  **Channel Establishment:** If a distribution channel is not established, execute `smartthings edge:channels:create`.
+2.  **Driver Installation:** Install the package to the designated channel and push it to the target Hub:
     ```bash
     smartthings edge:drivers:install
     ```
-3.  **Device Disenrollment:** Hvis Amina S-enheten er paret, fjern den fra SmartThings-appen for å sikre at den nye driveren velges.
-4.  **Re-enrollment (Pairing):** Start enhetens oppdagelsesprosess (f.eks. slå av og på laderen for å gå inn i paringsmodus). Huben vil matche enhetens fingeravtrykk og bruke denne tilpassede driveren.
+3.  **Device Disenrollment:** If the Amina S unit is currently paired, remove it from the SmartThings app to ensure the new driver is selected.
+4.  **Re-enrollment (Pairing):** Initiate the device discovery process (e.g., power cycle the charger to enter pairing mode). The Hub will match the device fingerprint and apply this custom driver.
 
-Driveren distribueres via en SmartThings Channel. For å generere en invitasjonslenke for deling i fellesskapet, utfør:
-```bash
-smartthings edge:channels:invite
