@@ -27,4 +27,9 @@ components:
 
     # CUSTOM CONTROL FOR CHARGE LIMIT (Amps) - using Level Control as an interface
       - id: switchLevel
-        version: 1
+        version: 1 
+        
+    # KATEGORI: Sikrer at driveren får riktig EV_CHARGER ikon i appen.
+    categories:
+      - name: EV_CHARGER
+        categoryType: manufacturer
