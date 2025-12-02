@@ -14,16 +14,15 @@ local log = require "log"
 local ZCL_ON_OFF_CLUSTER = clusters.OnOff.ID
 local ZCL_LEVEL_CONTROL_CLUSTER = clusters.LevelControl.ID
 local ZCL_ELECTRICAL_MEASUREMENT_CLUSTER = clusters.ElectricalMeasurement.ID
-local AMINA_S_CONTROL_CLUSTER = 0xFEE7  -- Amina Custom Cluster ID
-local AMINA_ENERGY_ATTRIBUTE = 0x0010  -- Total Active Energy (Wh)
-local AMINA_ALARMS_ATTRIBUTE = 0x0002  -- Alarms (map16)
-local AMINA_STATUSES_ATTRIBUTE = 0x0003 -- EV Statuses (map16)
+local AMINA_S_CONTROL_CLUSTER = 0xFEE7  -- Amina Custom Cluster ID for Energy/Alarms
+local AMINA_ENERGY_ATTRIBUTE = 0x0010  -- Total Active Energy (Wh) Attribute
+local AMINA_ALARMS_ATTRIBUTE = 0x0002  -- Alarms (map16) Attribute
+local AMINA_STATUSES_ATTRIBUTE = 0x0003 -- EV Statuses (map16) Attribute
 
 local CHARGER_ENDPOINT = 10 
 local scaling_factors = {}
 
 -- --- ALARM MAPPING (BASED ON AMINA DOCUMENTATION) ---
--- (Denne koden for ALARM_MESSAGES er uendret)
 local ALARM_MESSAGES = {
   [0] = "Critical: Welded relay(s) detected. Requires professional service.",
   [1] = "Safety: Wrong voltage balance detected. Check installation.",
@@ -50,7 +49,6 @@ local EV_STATUSES_MESSAGES = {
 }
 
 -- --- UTILITY FUNCTIONS FOR ZIGBEE SCALING ---
--- [store_scaling_factor og calculate_value funksjonene er uendret]
 local function calculate_value(raw_value, attribute_id)
   local factor = scaling_factors[attribute_id]
   if factor and factor.multiplier and factor.divisor and factor.divisor ~= 0 then
@@ -93,7 +91,7 @@ local function store_scaling_factor(device, attr_id, raw_value)
 end
 
 
--- --- STATUS HANDLING LOGIC (NEW) ---
+-- --- STATUS HANDLING LOGIC ---
 local function handle_ev_status(device, status_bitmask)
   local active_statuses = {}
   
@@ -109,13 +107,11 @@ local function handle_ev_status(device, status_bitmask)
   -- Log the detailed status (for debug and history)
   log.info("Amina EV Status: " .. status_string)
   
-  -- Emit custom event if needed (requires custom capability definition, omitted here for CLI simplicity)
-  -- For now, relying on logs, switch state, and measurement data for state visualization.
+  -- Relying on logs, switch state, and measurement data for state visualization.
 end
 
 -- --- HANDLERS FOR EVENTS ---
 
--- [handle_switch_cmd, handle_level_cmd (control logic) er uendret]
 local function handle_switch_cmd(driver, device, command)
   local cmd_id = command.command
   
@@ -171,7 +167,6 @@ local function electrical_measurement_handler(driver, device, event, raw_data)
   return defaults.basic_response_handler(driver, device, event, raw_data)
 end
 
--- [handle_alarms (hjelpefunksjon) og amina_control_handler (hovedhandler) er oppdatert for EV Statuses]
 local function handle_alarms(device, alarm_bitmask)
   local active_alarms = {}
   local is_critical = false
@@ -210,6 +205,7 @@ local function amina_control_handler(driver, device, event, raw_data)
       local watt_hours = event.value.value
       local kwh = watt_hours / 1000.0 -- Convert Wh to kWh
       
+      -- Emitting energy event using the 'energy' attribute
       device:emit_event(capabilities.energyMeasurement.energy({
           value = kwh,
           unit = "kWh"
@@ -219,7 +215,7 @@ local function amina_control_handler(driver, device, event, raw_data)
       local alarm_bitmask = event.value.value
       handle_alarms(device, alarm_bitmask)
   elseif event.attr_id == AMINA_STATUSES_ATTRIBUTE then
-      -- EV Statuses bitmask received (NEW)
+      -- EV Statuses bitmask received
       local status_bitmask = event.value.value
       handle_ev_status(device, status_bitmask)
   end
@@ -227,7 +223,6 @@ local function amina_control_handler(driver, device, event, raw_data)
   return defaults.basic_response_handler(driver, device, event, raw_data)
 end
 
--- [Resten av driverdefinisjonen er uendret]
 local function configure_reporting(device)
   log.info("Configuring automatic attribute reporting for Amina S...")
   
@@ -256,7 +251,7 @@ local function configure_reporting(device)
     AMINA_S_CONTROL_CLUSTER, AMINA_ALARMS_ATTRIBUTE, clusters.DataType.UINT16, 60, 3600, 1
   ):to_endpoint(CHARGER_ENDPOINT))
   
-  -- EV Statuses (0x0003): Set minimum reporting interval (NEW)
+  -- EV Statuses (0x0003): Set minimum reporting interval
   device:send(clusters.Cluster.client.configure_reporting(
     AMINA_S_CONTROL_CLUSTER, AMINA_STATUSES_ATTRIBUTE, clusters.DataType.UINT16, 60, 3600, 1
   ):to_endpoint(CHARGER_ENDPOINT))
@@ -280,7 +275,7 @@ local function refresh_all_measurements(device)
       clusters.ElectricalMeasurement.attributes.ActivePower
   }):to_endpoint(CHARGER_ENDPOINT))
 
-  -- Read Total Active Energy, Alarms, and Statuses (UPDATED)
+  -- Read Total Active Energy, Alarms, and Statuses
   device:send(clusters.Cluster.client.read_attributes(AMINA_S_CONTROL_CLUSTER, {
       AMINA_ENERGY_ATTRIBUTE,
       AMINA_ALARMS_ATTRIBUTE,
@@ -289,7 +284,7 @@ local function refresh_all_measurements(device)
 end
 
 local function do_init(driver, device)
-  -- Laster inn lagrede skaleringsfaktorer ved oppstart
+  -- Loads stored scaling factors on startup
   local stored_scaling = device:get_field("scaling_0x0404")
   if stored_scaling then
     log.info("Loaded stored scaling factors for device initialization.")
