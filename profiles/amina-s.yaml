@@ -1,39 +1,37 @@
-# Amina S driver
+# Amina S Driver Profile Specification
 # Copyright (c) 2025 Kristian Kleiveland
 # Licensed under the MIT License.
+# This profile defines the device's capabilities and its representation in the SmartThings app.
+
 name: amina-s
 components:
-  main:
+  - id: main
     capabilities:
-      # 0x0006 On/Off - Arm/Disarm charging
+      # 1. ARM/DISARM CHARGING (Standard On/Off Cluster)
       - id: switch
         version: 1
 
-      # 0x0B04 Electrical Measurement - Power Readings
-      - id: powerMeter             # Total Active Power (W)
+      # 2. MEASUREMENT (Electrical Measurement Cluster)
+      - id: powerMeter
         version: 1
-      - id: voltageMeasurement     # RMS Voltage (V)
+      - id: voltageMeasurement
         version: 1
-      - id: currentMeasurement     # RMS Current (A)
+      - id: currentMeasurement
         version: 1
 
-      # 0xFEE7 Amina S Control - Total Energy Consumption (Wh)
-      - id: energyMeasurement      # Total Active Energy (kWh)
+      # 3. ENERGY/CONSUMPTION (Custom Amina Control Cluster 0xFEE7)
+      - id: energyMeter          # Standard capability for cumulative energy
         version: 1
       
-      # Refresh forces the device to report new values
-      - id: refresh
+      # 4. REFRESH AND ALARMS
+      - id: refresh              # Forces the device to report current values
         version: 1
-
-      # CUSTOM CONTROL FOR CHARGE LIMIT (Amps) - using Level Control as an interface
-      - id: switchLevel
+      - id: switchLevel          # Used to set the charge current limit (Amps)
         version: 1 
-      
-      # Required for Alarm messages (0x0002)
-      - id: notification
+      - id: notification         # Displays critical warnings and RCD errors
         version: 1
         
-    # CATEGORY: Ensures the driver uses the correct EV_CHARGER icon in the app.
+    # CATEGORY: SmartPlug is used as the standard category for a metered switch/charger.
     categories:
-      - name: EV_CHARGER
+      - name: SmartPlug
         categoryType: manufacturer
