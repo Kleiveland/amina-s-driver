@@ -1,0 +1,10 @@
+# Amina S Zigbee Fingerprints
+# This file contains the necessary device identification to ensure the driver is assigned.
+zigbee:
+  fingerprints:
+    - manufacturer: "Amina Distribution AS"
+      model: "amina S"
+      deviceProfile: "amina-s" 
+  
+profiles:
+  - amina-s
