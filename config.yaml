@@ -1,12 +1,5 @@
 name: "Amina S driver"
-package: "amina-s-driver"
+packageKey: "amina-s-driver"
 version: "1.0.0"
-
-zigbee:
-  fingerprints:
-    - manufacturer: "Amina Distribution AS"
-      model: "amina S"
-      deviceProfile: "amina-s" 
-  
-profiles:
-  - amina-s
+permissions:
+  zigbee: {}
