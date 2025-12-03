@@ -1,83 +1,69 @@
-# Amina S driver
+Amina S - SmartThings Edge Driver
+This Edge Driver provides local Zigbee control for the Amina S EV Charger in SmartThings. It is designed to handle proprietary Amina clusters and attributes that are not natively supported by the standard SmartThings Lua SDK.
 
-## SmartThings Edge Driver for Amina S EV Charger
+Features
+Charging Control: Start and stop charging via standard Switch capability.
 
-**Author:** Kristian Kleiveland  
-**Version:** 1.0.0  
-**License:** MIT License  
-**Copyright:** (c) 2025 Kristian Kleiveland
+Amperage Limit: Set charging current between 6A and 32A using the Dimmer/Level control.
 
----
+1% = 6A (Minimum)
 
-## 1. Functional Specification and Capabilities
+100% = 32A (Maximum)
 
-This Edge Driver provides full local control and enhanced data monitoring for the Amina S EV Charger, replacing the default, limited SmartThings 'switch' profile. The driver runs locally on the SmartThings Hub for maximum speed and reliability.
+Metering: Reports active power (W), voltage (V), and current (A).
 
-### 1.1 Key Features and Control
+Energy Monitoring: Reports total lifetime energy consumption (kWh).
 
-| Capability | User Action / Practical Function |
-| :--- | :--- |
-| **Switch** | Enables and disables the charger's readiness state (Controls power relay). |
-| **Charge Limit Control** | Configuration of the maximum charging current (6A–32A). |
-| **Power Measurement** | Real-time reporting of active power, voltage, and current. |
-| **Energy Consumption** | Retrieval of total lifetime energy usage (kWh). |
-| **Alarm / Notification** | Reports critical hardware errors, safety warnings (e.g., leakage, overvoltage), and processing issues via SmartThings Notifications. |
-| **Status Tracking** | Detailed tracking of charger state (EV Connected, Power Delivered, Derating, Paused). |
+Session Data: Reports "Last Session Energy" to the device history log.
 
-### 1.2 Accuracy and Robustness
+Diagnostics: Decodes proprietary bitmaps for Alarms and EV Statuses (e.g., "Welded Relay", "Derating") and pushes them as textual notifications to the device history.
 
-Measurement attributes are scaled using device-specific factors, ensuring the reported Volt, Ampere, and Watt values are precise. The driver is configured to request automatic data reporting from the charger, guaranteeing instant status updates without constant polling.
+Technical Implementation
+This driver implements a specific workaround to communicate with the Amina proprietary cluster 0xFEE7. Standard SDK methods (cluster_base.read_attribute) cause runtime crashes with this firmware due to type validation errors.
 
----
+Key implementation details:
 
-## 2. Deployment Procedure
+Manual ZCL Construction: The driver bypasses the standard cluster library for 0xFEE7. Instead, it manually constructs the Zigbee ZCL payload using zcl_global.ReadAttribute.
 
-Deployment requires the **SmartThings Command Line Interface (CLI)** to validate, package, and install the driver onto your local Hub.
+Manufacturer Code Injection: The driver explicitly injects the Amina Manufacturer Code (0x143B) into the ZCL header. Without this code, the device ignores read requests to custom clusters.
 
-### 2.1 Environment Setup (Cross-Platform)
+Legacy Cluster Support: The driver uses the legacy clusters.Level definition rather than LevelControl to match the specific device fingerprint and behavior.
 
-The CLI tool requires **Node.js (LTS)** and **npm** to be installed.
+Project Structure
+config.yml: Driver package definition and permissions.
 
-1.  **Node.js Installation:** Install the Node.js LTS distribution. Utiliser platform-specific package managers (e.g., Homebrew on macOS, `apt` on Linux) or download directly from [nodejs.org](https://nodejs.org/).
+fingerprints.yml: Device fingerprint matching Manufacturer "Amina Distribution AS" and Model "Amina S".
 
-    *Example (Linux/Debian-based):*
-    ```bash
-    sudo apt update
-    sudo apt install nodejs npm
-    ```
+profiles/amina-profile.yml: Definition of device capabilities (Switch, Level, Measurements).
 
-2.  **Install SmartThings CLI:** Install the CLI globally using npm:
-    ```bash
-    npm install -g @smartthings/cli
-    ```
+src/init.lua: Core logic, manual ZCL frame construction, and bitmap decoding.
 
-3.  **Authentication:** Authenticate the CLI session with your SmartThings Developer Account:
-    ```bash
-    smartthings login
-    ```
+Installation
+Prerequisites
+SmartThings Hub
 
-### 2.2 Code Acquisition and Packaging
+SmartThings CLI installed and configured
 
-1.  **Clone Repository:** Execute the following command in the terminal to retrieve the source code:
-    ```bash
-    git clone [https://github.com/Kleiveland/amina-s-driver.git](https://github.com/Kleiveland/amina-s-driver.git)
-    ```
-2.  **Directory Navigation:** Navigate into the newly created project directory:
-    ```bash
-    cd amina-s-driver
-    ```
-3.  **Driver Validation and Package Creation:** Execute the packaging command. This verifies syntax correctness and bundles the driver.
-    ```bash
-    smartthings edge:drivers:package .
-    ```
+Steps
+Package the driver:
 
-### 2.3 Installation and Device Enrollment
+Bash
 
-1.  **Channel Establishment:** If a distribution channel is not established, execute `smartthings edge:channels:create`.
-2.  **Driver Installation:** Install the package to the designated channel and push it to the target Hub:
-    ```bash
-    smartthings edge:drivers:install
-    ```
-3.  **Device Disenrollment:** If the Amina S unit is currently paired, remove it from the SmartThings app to ensure the new driver is selected.
-4.  **Re-enrollment (Pairing):** Initiate the device discovery process (e.g., power cycle the charger to enter pairing mode). The Hub will match the device fingerprint and apply this custom driver.
+smartthings edge:drivers:package .
+Install the driver to your Hub:
 
+Bash
+
+smartthings edge:drivers:install
+Assign the driver to the device: If the device is already paired, switch the driver using the CLI. Replace the placeholders with your actual IDs.
+
+Bash
+
+smartthings edge:drivers:switch --hub <HUB_ID> --device-id <DEVICE_ID> --driver-id <DRIVER_ID>
+Usage Notes
+Status Updates: Standard electrical measurements (Voltage, Amps, Power) are configured for periodic reporting. Proprietary statuses (Alarms, specific EV states) are updated when a Refresh command is issued (pull-to-refresh in the app).
+
+History Tab: Since SmartThings does not support custom UI tiles for arbitrary text, detailed status messages (e.g., specific alarm codes or session energy) are sent as events to the "History" tab of the device.
+
+License
+MIT License.
