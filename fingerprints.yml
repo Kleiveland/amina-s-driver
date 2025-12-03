@@ -5,6 +5,6 @@
 zigbeeManufacturer:
   - id: "Amina S Charger"
     deviceLabel: "Amina S EV Charger"
-    manufacturer: "Amina Distribution AS"
+    manufacturer: "amina distribution AS"
     model: "Amina S"
     deviceProfileName: "amina-profile"
