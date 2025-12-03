@@ -1,5 +1,8 @@
-name: "Amina S driver"
+# Amina S driver
+# Copyright (c) 2025 Kristian Kleiveland
+# Licensed under the MIT License.
+
+name: "Amina S Driver"
 packageKey: "amina-s-driver"
-version: "1.0.0"
 permissions:
   zigbee: {}
