@@ -1,37 +1,26 @@
-# Amina S Driver Profile Specification
+# Amina S driver
 # Copyright (c) 2025 Kristian Kleiveland
 # Licensed under the MIT License.
-# This profile defines the device's capabilities and its representation in the SmartThings app.
 
-name: amina-s
+name: amina-profile
 components:
-  - id: main
+  main:
     capabilities:
-      # 1. ARM/DISARM CHARGING (Standard On/Off Cluster)
       - id: switch
         version: 1
-
-      # 2. MEASUREMENT (Electrical Measurement Cluster)
+      - id: switchLevel
+        version: 1
       - id: powerMeter
+        version: 1
+      - id: energyMeter
         version: 1
       - id: voltageMeasurement
         version: 1
       - id: currentMeasurement
         version: 1
-
-      # 3. ENERGY/CONSUMPTION (Custom Amina Control Cluster 0xFEE7)
-      - id: energyMeter          # Standard capability for cumulative energy
+      - id: refresh
         version: 1
-      
-      # 4. REFRESH AND ALARMS
-      - id: refresh              # Forces the device to report current values
+      - id: notification
         version: 1
-      - id: switchLevel          # Used to set the charge current limit (Amps)
-        version: 1 
-      - id: notification         # Displays critical warnings and RCD errors
-        version: 1
-        
-    # CATEGORY: SmartPlug is used as the standard category for a metered switch/charger.
     categories:
-      - name: SmartPlug
-        categoryType: manufacturer
+      - name: Switch
