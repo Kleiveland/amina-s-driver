@@ -1,0 +1,10 @@
+# Amina S driver
+# Copyright (c) 2025 Kristian Kleiveland
+# Licensed under the MIT License.
+
+zigbeeManufacturer:
+  - id: "Amina S"
+    deviceLabel: "Amina S Charger"
+    manufacturer: "Amina Distribution AS"
+    model: "Amina S"
+    deviceProfileName: "amina-profile"
