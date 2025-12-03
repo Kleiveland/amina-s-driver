@@ -1,0 +1,42 @@
+# Amina S driver
+# Copyright (c) 2025 Kristian Kleiveland
+# Licensed under the MIT License.
+
+# Device profile definition for the Amina S EV Charger.
+# This file declares the capabilities exposed to SmartThings.
+
+name: amina-profile
+components:
+  main:
+    capabilities:
+      # Standard control and metering
+      - id: switch
+        version: 1
+      - id: switchLevel # Slider mapped to charging current (6–32 A)
+        version: 1
+      - id: powerMeter
+        version: 1
+      - id: energyMeter # Total energy consumption (kWh)
+        version: 1
+      - id: voltageMeasurement
+        version: 1
+      - id: currentMeasurement
+        version: 1
+      - id: refresh
+        version: 1
+      - id: notification # Used for Last Session Energy and status messages
+        version: 1
+      # Automation triggers based on proprietary EV statuses
+      - id: contactSensor # Bit 0: EV Connected (closed = connected)
+        version: 1
+      - id: tamperAlert # Any alarm active (maps to tamper detected)
+        version: 1
+      - id: temperatureAlarm # Bit 15: Derating due to high temperature
+        version: 1
+      - id: motionSensor # Bit 2: Power Delivered (active = charging)
+        version: 1
+      - id: presenceSensor # Bit 4: EV Ready (present = ready to charge)
+        version: 1
+
+    categories:
+      - name: Switch
