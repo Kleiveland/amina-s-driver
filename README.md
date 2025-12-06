@@ -1,54 +1,68 @@
-# Amina S EV Charger - SmartThings Edge Driver
+# Amina S driver
+Copyright (c) 2025 Kristian Kleiveland  
+Licensed under the MIT License.
 
-This Edge Driver provides local Zigbee control for the Amina S EV Charger, utilizing a custom ZCL messaging technique to ensure robust, full feature support and advanced automation capabilities in SmartThings.
+## Overview
 
-## Functionality
+This SmartThings Zigbee driver integrates the Amina S EV charger using endpoint 10 and Level Control semantics mapped directly to amps. It provides:
 
-* **Switch Control:** Basic on/off control of the charger.
-* **Current Limit:** Adjust charging current (Amperes) using the Level control slider (6A to 32A).
-* **Real-time Metering:** Voltage (V), Current (A), Active power (W), and Total consumption (kWh).
-* **Error Handling:** Alerts for critical faults and alarms are reported via the Tamper Alert capability and app notifications.
-* **Enhanced Automation:** Converts the charger's status bits into standard SmartThings sensors for use in routines.
+- Switch on/off
+- Slider to set charging current (switchLevel)
+- Current, power, and voltage readings
+- Presence indication based on active power
+- Manual refresh to fetch actual device state
 
-## Status to SmartThings Sensors
+Design goals:
+- Stable UI without automatic reads or configure reporting
+- Immediate feedback for amps when you send a command
+- Authoritative slider updates only when the device reports back
 
-This table shows the mapping of proprietary EV status bits to standard SmartThings capabilities, making them direct triggers for automation.
+## Installation
 
-| Bit | Status Type | Capability Mapping |
-| :---: | :--- | :--- |
-| **0** | EV Connected | `contactSensor` (closed/open) |
-| **2** | Power Delivered | `motionSensor` (active/inactive) |
-| **4** | EV Ready | `presenceSensor` (present/not present) |
-| **15** | Derating (High Temp) | `temperatureAlarm` (heat/cleared) |
+1. Package the driver and profile (init.lua, config.yml) into a SmartThings Edge driver bundle.
+2. Install the driver on your SmartThings hub (via CLI or channel).
+3. Pair the Amina S EV charger; the device should expose endpoint 10 with Level/OnOff/ElectricalMeasurement.
+4. Assign the “amina-profile” to the device.
 
-## Installation and Presentation
+No automatic reporting or reads are configured. You can manually refresh to fetch current values.
 
-### Trinn 1: Package and Install Driver
+## Slider mapping: percentage → amps
 
-1.  **Package the driver:**
-    ```bash
-    smartthings edge:drivers:package .
-    ```
+- Range: 6 A (minimum) to your maxCurrent preference (default: 32 A).
+- Mapping: percent 0–100 scales linearly from 6 A to maxCurrent.
+- Example:
+  - 0% → 6 A
+  - 50% → ~19 A (with maxCurrent = 32)
+  - 100% → 32 A (with maxCurrent = 32)
 
-2.  **Install to Hub:**
-    ```bash
-    smartthings edge:drivers:install
-    ```
+We emit currentMeasurement immediately when you set the slider or turn the switch on. The slider (switchLevel) itself is updated only when the device reports its confirmed CurrentLevel value.
 
-### Trinn 2: Generate and Assign Visual Presentation (VID)
+## Switch on/off behavior
 
-To ensure the new sensors and controls are displayed correctly in the SmartThings App UI, you must generate a Device Presentation.
+- On: Sends On to the charger, then restores the last set amps (or maxCurrent if none is stored). Emits currentMeasurement immediately. The slider updates after the device reports CurrentLevel.
+- Off: Sends Off and updates the switch capability to off. No amps are changed.
 
-1.  **Generate Presentation Configuration:** Run this command to create the necessary visual metadata:
-    ```bash
-    smartthings presentation:device-config:generate -p amina-profile -n "Amina S Charger" -m "Amina Distribution AS"
-    ```
+## Refresh
 
-2.  **Assign the Driver:** If the device is already added to SmartThings, update it to use your new driver ID:
-    ```bash
-    smartthings edge:drivers:switch --hub <HUB_ID> --device-id <DEVICE_ID> --driver-id <YOUR_NEW_DRIVER_ID>
-    ```
+- Manual refresh reads:
+  - ElectricalMeasurement.ActivePower (W)
+  - Level.CurrentLevel (amps)
+  - ElectricalMeasurement.RMSVoltage (V)
+
+Use refresh to synchronize the UI to the device’s actual limits (e.g., if the charger physically caps at 10 A, the device will report 10 A, and the slider will update accordingly).
+
+## Changing maxCurrent
+
+- Open the device in SmartThings and adjust the “Max Charging Current (A)” preference.
+- Range: 6–32 A
+- Default: 32 A
+- This preference sets the upper bound for slider mapping and for restores when you turn the switch on.
+
+## Notes on behavior
+
+- No automatic configure reporting is used. This prevents unsolicited UI churn and ensures that you remain in control via manual refresh.
+- If you request a current above a physical cap (e.g., charger limited to 10 A), the device will report back its actual CurrentLevel (10 A). After a manual refresh (or device report), the slider will update to reflect 10 A.
 
 ## License
 
-MIT License.
+MIT License © 2025 Kristian Kleiveland
