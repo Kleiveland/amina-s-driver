@@ -2,8 +2,9 @@
 # Copyright (c) 2025 Kristian Kleiveland
 # Licensed under the MIT License.
 
-name: "Amina S Charger Driver"
+name: "Amina S EV Charger"
 packageKey: "amina-s-driver"
-description: "SmartThings Edge driver for Amina S EV Charger with full custom status support."
 permissions:
   zigbee: {}
+profiles:
+  - amina-profile
