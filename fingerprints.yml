@@ -3,8 +3,8 @@
 # Licensed under the MIT License.
 
 zigbeeManufacturer:
-  - id: "Amina S Charger"
-    deviceLabel: "Amina S EV Charger"
-    manufacturer: "amina distribution AS"
-    model: "Amina S"
-    deviceProfileName: "amina-profile"
+  - id: "amina distribution AS/amina S"
+    deviceLabel: Amina S EV Charger
+    manufacturer: amina distribution AS
+    model: amina S
+    deviceProfileName: amina-profile
