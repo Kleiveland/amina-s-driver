@@ -1,129 +1,51 @@
-# Amina S driver
-Copyright (c) 2025 Kristian Kleiveland  
-Licensed under the MIT License.
+# Amina S EV Charger – SmartThings Edge Driver
 
 ## Overview
 
-This SmartThings Zigbee driver integrates the Amina S EV charger using endpoint 10 and Level Control mapped directly to amps. It provides:
+This driver integrates the **Amina S EV charger** seamlessly with SmartThings, providing full control and monitoring directly within the SmartThings app. It is designed to deliver a stable user experience by showing immediate feedback when you adjust the charging current, and accurately reflecting the current limits set by the charger.
 
-- Switch on/off
-- Slider to set charging current (switchLevel)
-- Current, power, and voltage readings
-- Presence indication based on active power
-- Manual refresh to fetch actual device state
+***
 
-Design goals:
-- Stable UI without automatic reads or configure reporting
-- Immediate feedback for amps when you send a command
-- Authoritative slider updates only when the device reports back
+## Key Features
 
----
+### Current Management (Slider Control)
+* **Adjust charging current** using the SmartThings slider (the "Dimmer" field).
+* The slider supports whole Ampere values from **6 A** up to your configured maximum limit (default 32 A).
+* **Immediate UI Feedback:** When you adjust the slider, the app immediately displays the requested value (e.g., 17 A / 44%).
+* **Accurate Reflection:** The driver ensures that the current measurement and slider position are updated to the **actual charging current** confirmed by the charger (e.g., if you set 17 A but the charger limits to 10 A, the UI will reflect 10 A / ~15%).
 
-## Files
+### Basic Control and Measurements
+* **On/Off Control:** Turn charging on or off directly from the app. When turned on, the charger restores the last used current value.
+* **Measurements:**
+    * **Current (A):** Actual charging current.
+    * **Power (W):** Active power consumption.
+    * **Voltage (V):** Supply voltage.
+* **Presence Sensor:** Shows "Present" when the charging power exceeds approximately 10 W (indicating active charging).
+* **Manual Refresh:** Press Refresh to update all values (current, power, voltage) from the charger.
 
-- **init.lua**  
-  Contains the driver logic. Handles commands, maps slider % to amps, and processes device reports.
+***
 
-- **config.yml**  
-  Defines the SmartThings profile (capabilities, categories, preferences). Includes the `maxCurrent` preference (default 32 A).
+## Installation and Usage
 
-Place both files in your driver source folder when packaging.
+### Installation
 
----
+This is a SmartThings **Edge Driver**. It must be installed either through the SmartThings CLI or via a Channel Invitation Link that you add to your Hub.
 
-## Installation
+1.  **Add Channel:** Follow the instructions to add the driver's Channel to your SmartThings Hub.
+2.  **Pair the Device:** Put the Amina S charger into pairing mode. The SmartThings Hub will automatically discover the device and assign this driver.
 
-1. **Prepare driver bundle**  
-   - Put `init.lua` and `config.yml` into your SmartThings Edge driver project folder.  
-   - Add a `package.yml` if required by your CLI setup.
+### Usage Instructions
+1.  **Set Maximum Current:** If you need to restrict the upper limit of the slider, you can set your preferred maximum current (A) in the device settings within the SmartThings app.
+2.  **Adjust Current:** Use the slider to set the desired charging current.
+3.  **Monitor Status:** The app confirms the final charging current, ensuring the display reflects the actual current permitted by the charger.
 
-2. **Build and install**  
-   - Use the SmartThings CLI:  
-     ```bash
-     smartthings edge:drivers:package .
-     smartthings edge:drivers:install <driverId> --hub <hubId>
-     ```
-   - Alternatively, publish via your SmartThings channel.
+### Automations
+* Use **percentage values** in routines for load balancing.
+* *Example:* "If total household consumption exceeds 10 kW, set charger to 50%."
 
-3. **Pair the charger**  
-   - Reset/pair the Amina S EV charger with your SmartThings hub.  
-   - Assign the `amina-profile` to the device.
+***
 
----
-
-## Slider mapping: percentage → amps
-
-- Range: 6 A (minimum) to your `maxCurrent` preference (default: 32 A).
-- Mapping: percent 0–100 scales linearly from 6 A to maxCurrent.
-- Example (maxCurrent = 32 A):
-  - 0% → 6 A  
-  - 50% → ~19 A  
-  - 100% → 32 A  
-
-The driver emits `currentMeasurement` immediately when you set the slider. The slider (`switchLevel`) itself updates only when the device reports its confirmed `CurrentLevel`.
-
----
-
-## Switch on/off behavior
-
-- **On**: Sends On to the charger, then restores the last set amps (or maxCurrent if none stored). Emits `currentMeasurement` immediately. Slider updates after the device reports `CurrentLevel`.  
-- **Off**: Sends Off and updates the switch capability to off. No amps are changed.
-
----
-
-## Refresh
-
-Manual refresh reads:
-- ElectricalMeasurement.ActivePower (W)
-- Level.CurrentLevel (amps)
-- ElectricalMeasurement.RMSVoltage (V)
-
-Use refresh to synchronize the UI to the device’s actual limits (e.g., if the charger is physically capped at 10 A, the device will report 10 A, and the slider will update accordingly).
-
----
-
-## Changing maxCurrent
-
-- Open the device in SmartThings and adjust the **Max Charging Current (A)** preference.  
-- Range: 6–32 A  
-- Default: 32 A  
-
-This preference sets the upper bound for slider mapping and for restores when you turn the switch on.
-
----
-
-## Automation with % for load sharing
-
-You can use SmartThings automations or Rules to set the **switchLevel** capability in percent. The driver maps this percent to amps relative to your configured `maxCurrent`.
-
-### Example: Load sharing between two chargers
-
-- Charger A and Charger B both have `maxCurrent = 32 A`.  
-- You want them to split available load dynamically.
-
-Automation rule:
-- If total load > threshold, set Charger A to 50% and Charger B to 50%.  
-- Driver maps 50% → ~19 A each.  
-- If load drops, set both back to 100% (32 A each).
-
-### Example: Relative scaling
-
-- With `maxCurrent = 16 A` (preference changed),  
-  - 50% → ~11 A  
-  - 100% → 16 A  
-
-This allows you to write automations in **percent** without hardcoding absolute amps. The driver automatically scales based on the configured maxCurrent.
-
----
-
-## Notes
-
-- No automatic configure reporting is used. Manual refresh ensures you stay in control.  
-- If you request a current above the physical cap (e.g., charger limited to 10 A), the device will report back its actual `CurrentLevel`. After a manual refresh (or device report), the slider will update to reflect 10 A.  
-- For load sharing, always use **percent values** in automations. This keeps rules portable across chargers with different maxCurrent settings.
-
----
-
-## License
-
-MIT License © 2025 Kristian Kleiveland
+## User Experience
+* **Stable Control:** Commands execute reliably.
+* **Accurate Feedback:** The app always reflects the real charging current reported by the charger.
+* **Flexible Control:** Full control over all whole Ampere values between 6 A and your maximum configuration.
